@@ -1,15 +1,13 @@
-// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
-
-
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vibration/vibration.dart';
 
+Map<String, dynamic> history = {};
+
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-  final String title;
+  const MyHomePage({super.key});
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
@@ -22,10 +20,10 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    total = 0;
     loadSnacks()
         .then((value) => setState(() => snacks = value))
         .then((value) => totalCalculate());
+    loadHistory().then((value) => setState(() => history = value));
   }
 
   void totalCalculate() {
@@ -80,6 +78,23 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  Future<void> saveHistory() async {
+    final prefs = await SharedPreferences.getInstance();
+    final historyJson = jsonEncode(history);
+    await prefs.setString('SnacksHistory', historyJson);
+  }
+
+  Future<Map<String, dynamic>> loadHistory() async {
+    final prefs = await SharedPreferences.getInstance();
+    final historyJson = prefs.getString('SnacksHistory');
+    if (historyJson != null) {
+      final history = jsonDecode(historyJson);
+      return history.cast<String, dynamic>();
+    } else {
+      return {};
+    }
+  }
+
   void _showAddSnackDialog() {
     String snackName = '';
     int snackCost = 0;
@@ -88,7 +103,7 @@ class _MyHomePageState extends State<MyHomePage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Add Snack'),
+          title: const Text('Add Snack'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -96,14 +111,14 @@ class _MyHomePageState extends State<MyHomePage> {
                 onChanged: (value) {
                   snackName = value;
                 },
-                decoration: InputDecoration(labelText: 'Snack Name'),
+                decoration: const InputDecoration(labelText: 'Snack Name'),
               ),
               TextField(
                 onChanged: (value) {
                   snackCost = int.tryParse(value) ?? 0;
                 },
                 keyboardType: TextInputType.number,
-                decoration: InputDecoration(labelText: 'Snack Cost'),
+                decoration: const InputDecoration(labelText: 'Snack Cost'),
               ),
             ],
           ),
@@ -112,7 +127,7 @@ class _MyHomePageState extends State<MyHomePage> {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text('Cancel'),
+              child: const Text('Cancel'),
             ),
             TextButton(
               onPressed: () {
@@ -125,7 +140,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 });
                 Navigator.of(context).pop();
               },
-              child: Text('Save'),
+              child: const Text('Save'),
             ),
           ],
         );
@@ -133,12 +148,62 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  void showSaveItemsDialog(total) {
+    var date =
+        '${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}';
+    var time =
+        '${DateTime.now().hour}:${DateTime.now().minute}:${DateTime.now().second}';
+    var dateTime = '${DateTime.now()}';
+
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text("₹ ${total.toString()}", style: const TextStyle(fontSize: 25),),
+            content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(date),
+                  const SizedBox(height: 6,),
+                  Text(time),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  const Text(
+                    'Do you want to save this data?',
+                    style: TextStyle(fontSize: 20),
+                  ),
+                ]),
+            actions: [
+              TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text('Cancel')),
+              TextButton(
+                  onPressed: () {
+                    history[dateTime.toString()] = {
+                      "Total": total,
+                      "Date": date,
+                      "Time": time,
+                    };
+                    saveHistory();
+                    Navigator.pop(context);
+                  },
+                  child: const Text('Save')),
+            ],
+          );
+        });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          widget.title,
+        elevation: 0,
+        title: const Text(
+          'Snacks',
           style: TextStyle(fontSize: 28),
         ),
         actions: [
@@ -146,7 +211,7 @@ class _MyHomePageState extends State<MyHomePage> {
               onPressed: () {
                 _showAddSnackDialog();
               },
-              child: Row(
+              child: const Row(
                 children: [
                   Icon(
                     Icons.add,
@@ -168,7 +233,7 @@ class _MyHomePageState extends State<MyHomePage> {
       body: Column(children: [
         Expanded(
           child: SingleChildScrollView(
-            padding: EdgeInsets.symmetric(vertical: 20),
+            padding: const EdgeInsets.symmetric(vertical: 20),
             child: Column(children: [
               for (var entry in snacks.entries)
                 Dismissible(
@@ -182,21 +247,21 @@ class _MyHomePageState extends State<MyHomePage> {
                     });
                   },
                   background: Container(
-                    padding: EdgeInsets.only(left: 20),
-                    color: Color.fromARGB(255, 255, 17, 0),
+                    padding: const EdgeInsets.only(left: 20),
+                    color: const Color.fromARGB(255, 255, 17, 0),
                     alignment: Alignment.centerLeft,
-                    child: Icon(
+                    child: const Icon(
                       Icons.delete,
                       color: Colors.white,
                       size: 30,
                     ),
                   ),
                   child: Container(
-                    padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-                    margin: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                    margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
                     decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(8),
-                        color: Color.fromARGB(255, 226, 226, 226)),
+                        color: const Color.fromARGB(255, 226, 226, 226)),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -204,12 +269,12 @@ class _MyHomePageState extends State<MyHomePage> {
                           children: [
                             Text(
                               (entry.key),
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 22,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
-                            SizedBox(
+                            const SizedBox(
                               width: 6,
                             ),
                             Text((entry.value['cost'].toString()))
@@ -222,15 +287,15 @@ class _MyHomePageState extends State<MyHomePage> {
                                   decreaseCounter(entry.key);
                                   saveSnacks(snacks);
                                 },
-                                icon: Icon(Icons.remove)),
-                            SizedBox(
+                                icon: const Icon(Icons.remove)),
+                            const SizedBox(
                               width: 10,
                             ),
                             Text(
                               entry.value['count'].toString(),
-                              style: TextStyle(fontSize: 22),
+                              style: const TextStyle(fontSize: 22),
                             ),
-                            SizedBox(
+                            const SizedBox(
                               width: 10,
                             ),
                             IconButton(
@@ -238,7 +303,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                   increaseCounter(entry.key);
                                   saveSnacks(snacks);
                                 },
-                                icon: Icon(Icons.add)),
+                                icon: const Icon(Icons.add)),
                           ],
                         )
                       ],
@@ -249,10 +314,28 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ),
         Container(
-          padding: EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          height: 70,
           color: Colors.black,
           child:
               Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
+            ElevatedButton(
+              onPressed: () {
+                showSaveItemsDialog(total);
+              },
+              style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all(Colors.white),
+                shape: MaterialStateProperty.all(
+                  RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(50),
+                  ),
+                ),
+              ),
+              child: const Icon(
+                Icons.save,
+                color: Colors.black,
+              ),
+            ),
             ElevatedButton(
               onPressed: () {
                 reset();
@@ -266,14 +349,14 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                 ),
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.replay_outlined,
                 color: Colors.black,
               ),
             ),
             Row(
               children: [
-                Text(
+                const Text(
                   'Total:  ',
                   style: TextStyle(
                       fontSize: 30,
@@ -282,7 +365,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
                 Text(
                   "₹ $total".toString(),
-                  style: TextStyle(
+                  style: const TextStyle(
                       fontSize: 30,
                       fontWeight: FontWeight.w700,
                       color: Colors.white),
