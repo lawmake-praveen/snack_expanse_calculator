@@ -159,13 +159,18 @@ class _MyHomePageState extends State<MyHomePage> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text("₹ ${total.toString()}", style: const TextStyle(fontSize: 25),),
+            title: Text(
+              "₹ ${total.toString()}",
+              style: const TextStyle(fontSize: 25),
+            ),
             content: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(date),
-                  const SizedBox(height: 6,),
+                  const SizedBox(
+                    height: 6,
+                  ),
                   Text(time),
                   const SizedBox(
                     height: 20,
@@ -192,6 +197,34 @@ class _MyHomePageState extends State<MyHomePage> {
                     Navigator.pop(context);
                   },
                   child: const Text('Save')),
+            ],
+          );
+        });
+  }
+
+  Future<bool> confirmDelete() async {
+    return await showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Delete this Snack'),
+            actions: [
+              TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(false);
+                  },
+                  child: const Text('Cancel')),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(true);
+                },
+                style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.all(Colors.red)),
+                child: const Text(
+                  'Delete',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
             ],
           );
         });
@@ -238,6 +271,9 @@ class _MyHomePageState extends State<MyHomePage> {
               for (var entry in snacks.entries)
                 Dismissible(
                   key: Key(entry.key),
+                  confirmDismiss: (direction) async {
+                    return await confirmDelete();
+                  },
                   direction: DismissDirection.startToEnd,
                   onDismissed: (direction) {
                     snacks.remove(entry.key);
@@ -257,8 +293,10 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                   ),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-                    margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 10, horizontal: 20),
+                    margin:
+                        const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
                     decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(8),
                         color: const Color.fromARGB(255, 226, 226, 226)),
