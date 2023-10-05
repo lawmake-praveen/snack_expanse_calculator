@@ -1,6 +1,6 @@
 # Snack Calculator App
 
-# In this project that I created using flutter I used shared preferences to store and retrive data about the snacks and history.
+In this project that I created using flutter I used shared preferences to store and retrive data about the snacks and history.
 
 <p align="left">
   <img src="https://github.com/lawmake-praveen/snack_expanse_calculator/assets/113996180/60c8fdeb-b507-4ba8-9330-d1fb4da47f8c" alt="Home_page" width="350px" />
